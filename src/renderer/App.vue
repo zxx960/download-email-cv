@@ -13,6 +13,16 @@ const passwordType = ref('password');
 let unsubscribeProgress = null;
 
 onMounted(() => {
+  // 从localStorage读取保存的邮箱和授权码
+  const savedEmail = localStorage.getItem('qq_email');
+  const savedPassword = localStorage.getItem('qq_auth_code');
+  if (savedEmail) {
+    email.value = savedEmail;
+  }
+  if (savedPassword) {
+    password.value = savedPassword;
+  }
+
   // 监听下载进度
   unsubscribeProgress = window.electronAPI.email.onProgress((data) => {
     if (data.status === 'searching') {
@@ -54,6 +64,10 @@ const connectAndDownload = async () => {
       return;
     }
 
+    // 连接成功后保存邮箱和授权码到localStorage
+    localStorage.setItem('qq_email', email.value);
+    localStorage.setItem('qq_auth_code', password.value);
+
     status.value = '连接成功，开始下载附件...';
     isDownloading.value = true;
 
@@ -86,6 +100,17 @@ const openDownloadFolder = async () => {
       alert(`打开文件夹失败: ${openResult.message}`);
     }
   }
+};
+
+const clearSavedCredentials = () => {
+  localStorage.removeItem('qq_email');
+  localStorage.removeItem('qq_auth_code');
+  email.value = '';
+  password.value = '';
+  status.value = '已清除保存的邮箱和授权码';
+  setTimeout(() => {
+    status.value = '';
+  }, 2000);
 };
 </script>
 
@@ -138,6 +163,14 @@ const openDownloadFolder = async () => {
         :disabled="isConnecting || isDownloading"
       >
         {{ isConnecting || isDownloading ? '处理中...' : '开始下载附件' }}
+      </button>
+
+      <button
+        class="clear-btn"
+        @click="clearSavedCredentials"
+        :disabled="isConnecting || isDownloading"
+      >
+        🗑️ 清除保存的信息
       </button>
     </div>
 
@@ -206,6 +239,7 @@ const openDownloadFolder = async () => {
 
 .form-group {
   margin-bottom: 20px;
+  text-align: left;
 }
 
 .form-group label {
@@ -213,12 +247,14 @@ const openDownloadFolder = async () => {
   margin-bottom: 8px;
   color: #2c3e50;
   font-weight: 600;
+  text-align: left;
 }
 
 .help-text {
   font-size: 12px;
   color: #95a5a6;
   font-weight: normal;
+  text-align: left;
 }
 
 .form-group input {
@@ -283,6 +319,29 @@ const openDownloadFolder = async () => {
 }
 
 .download-btn:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+}
+
+.clear-btn {
+  width: 100%;
+  padding: 12px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.clear-btn:hover:not(:disabled) {
+  background: #c0392b;
+}
+
+.clear-btn:disabled {
   background: #95a5a6;
   cursor: not-allowed;
 }
