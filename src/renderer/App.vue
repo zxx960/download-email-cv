@@ -101,17 +101,6 @@ const openDownloadFolder = async () => {
     }
   }
 };
-
-const clearSavedCredentials = () => {
-  localStorage.removeItem('qq_email');
-  localStorage.removeItem('qq_auth_code');
-  email.value = '';
-  password.value = '';
-  status.value = '已清除保存的邮箱和授权码';
-  setTimeout(() => {
-    status.value = '';
-  }, 2000);
-};
 </script>
 
 <template>
@@ -163,14 +152,6 @@ const clearSavedCredentials = () => {
         :disabled="isConnecting || isDownloading"
       >
         {{ isConnecting || isDownloading ? '处理中...' : '开始下载附件' }}
-      </button>
-
-      <button
-        class="clear-btn"
-        @click="clearSavedCredentials"
-        :disabled="isConnecting || isDownloading"
-      >
-        🗑️ 清除保存的信息
       </button>
     </div>
 
@@ -319,29 +300,6 @@ const clearSavedCredentials = () => {
 }
 
 .download-btn:disabled {
-  background: #95a5a6;
-  cursor: not-allowed;
-}
-
-.clear-btn {
-  width: 100%;
-  padding: 12px;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin-top: 10px;
-}
-
-.clear-btn:hover:not(:disabled) {
-  background: #c0392b;
-}
-
-.clear-btn:disabled {
   background: #95a5a6;
   cursor: not-allowed;
 }
