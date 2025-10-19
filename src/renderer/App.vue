@@ -170,17 +170,6 @@ const openDownloadFolder = async () => {
         </button>
       </div>
     </div>
-
-    <div class="help-section">
-      <h3>❓ 如何获取QQ邮箱授权码</h3>
-      <ol>
-        <li>登录 QQ 邮箱网页版</li>
-        <li>点击"设置" → "账户"</li>
-        <li>找到"POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV服务"</li>
-        <li>开启"IMAP/SMTP服务"</li>
-        <li>按照提示生成授权码</li>
-      </ol>
-    </div>
   </div>
 </template>
 
@@ -392,28 +381,5 @@ const openDownloadFolder = async () => {
 
 .open-folder-btn:hover {
   background: #27ae60;
-}
-
-.help-section {
-  background: #fff9e6;
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid #ffe6a7;
-}
-
-.help-section h3 {
-  margin-top: 0;
-  color: #2c3e50;
-}
-
-.help-section ol {
-  margin: 10px 0;
-  padding-left: 20px;
-}
-
-.help-section li {
-  margin: 8px 0;
-  color: #555;
-  line-height: 1.6;
 }
 </style>
