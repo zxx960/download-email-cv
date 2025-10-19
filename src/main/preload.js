@@ -14,5 +14,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       // 返回取消订阅函数
       return () => ipcRenderer.removeListener('email:progress', subscription);
     }
-  }
+  },
+  
+  // 系统相关API
+  openPath: (path) => ipcRenderer.invoke('system:openPath', path)
 })

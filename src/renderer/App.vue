@@ -79,10 +79,12 @@ const connectAndDownload = async () => {
   }
 };
 
-const openDownloadFolder = () => {
+const openDownloadFolder = async () => {
   if (result.value && result.value.downloadPath) {
-    // 这里可以通过shell打开文件夹，但需要在preload中添加API
-    alert(`附件保存在: ${result.value.downloadPath}`);
+    const openResult = await window.electronAPI.openPath(result.value.downloadPath);
+    if (!openResult.success) {
+      alert(`打开文件夹失败: ${openResult.message}`);
+    }
   }
 };
 </script>

@@ -1,4 +1,4 @@
-const {app, BrowserWindow, ipcMain, session} = require('electron');
+const {app, BrowserWindow, ipcMain, session, shell} = require('electron');
 const {join} = require('path');
 const EmailHandler = require('./emailHandler');
 
@@ -98,4 +98,17 @@ ipcMain.handle('email:disconnect', async (event) => {
     emailHandler = null;
   }
   return { success: true };
+});
+
+// 系统相关的IPC handlers
+ipcMain.handle('system:openPath', async (event, path) => {
+  try {
+    const result = await shell.openPath(path);
+    if (result) {
+      return { success: false, message: `无法打开路径: ${result}` };
+    }
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
 });
