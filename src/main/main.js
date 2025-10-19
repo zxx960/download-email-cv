@@ -1,10 +1,13 @@
 const {app, BrowserWindow, ipcMain, session} = require('electron');
 const {join} = require('path');
+const EmailHandler = require('./emailHandler');
+
+let emailHandler = null;
 
 function createWindow () {
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1000,
+    height: 700,
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -19,6 +22,8 @@ function createWindow () {
   else {
     mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'));
   }
+
+  return mainWindow;
 }
 
 app.whenReady().then(() => {
@@ -48,4 +53,49 @@ app.on('window-all-closed', function () {
 
 ipcMain.on('message', (event, message) => {
   console.log(message);
-})
+});
+
+// 邮件相关的IPC handlers
+ipcMain.handle('email:connect', async (event, { email, password }) => {
+  try {
+    emailHandler = new EmailHandler();
+    const result = await emailHandler.connect(email, password);
+    return result;
+  } catch (error) {
+    return { success: false, message: error.message || '连接失败' };
+  }
+});
+
+ipcMain.handle('email:download', async (event) => {
+  try {
+    if (!emailHandler) {
+      return { success: false, message: '请先连接邮箱' };
+    }
+
+    const mainWindow = BrowserWindow.getAllWindows()[0];
+    
+    const result = await emailHandler.downloadUnreadAttachments((progress) => {
+      // 发送进度更新到渲染进程
+      if (mainWindow) {
+        mainWindow.webContents.send('email:progress', progress);
+      }
+    });
+
+    return result;
+  } catch (error) {
+    return { success: false, message: error.message || '下载失败' };
+  } finally {
+    if (emailHandler) {
+      emailHandler.disconnect();
+      emailHandler = null;
+    }
+  }
+});
+
+ipcMain.handle('email:disconnect', async (event) => {
+  if (emailHandler) {
+    emailHandler.disconnect();
+    emailHandler = null;
+  }
+  return { success: true };
+});
