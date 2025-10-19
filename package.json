@@ -1,7 +1,7 @@
 {
-  "name": "electron-vue-template",
-  "version": "0.1.0",
-  "description": "A minimal Electron + Vue application",
+  "name": "qq-email-attachment-downloader",
+  "version": "1.0.0",
+  "description": "QQ邮箱附件下载器 - 基于Electron + Vue3开发的桌面应用",
   "main": "main/main.js",
   "scripts": {
     "dev": "node scripts/dev-server.js",
@@ -10,11 +10,18 @@
     "build:mac": "node scripts/build.js && electron-builder --mac",
     "build:linux": "node scripts/build.js && electron-builder --linux"
   },
-  "repository": "https://github.com/deluze/electron-vue-template",
+  "repository": "https://github.com/zxx960/download-email-cv.git",
   "author": {
-    "name": "Deluze",
-    "url": "https://github.com/Deluze"
+    "name": "zxx960",
+    "url": "https://github.com/zxx960"
   },
+  "keywords": [
+    "electron",
+    "vue",
+    "qq-email",
+    "attachment-downloader",
+    "imap"
+  ],
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.4.1",
     "chalk": "^4.1.2",

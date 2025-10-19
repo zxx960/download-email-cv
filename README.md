@@ -1,77 +1,161 @@
 <div align="center"> 
 
-# Electron Vue Template
-  
-<img width="794" alt="image" src="https://user-images.githubusercontent.com/32544586/222748627-ee10c9a6-70d2-4e21-b23f-001dd8ec7238.png">
+# 📧 QQ邮箱附件下载器
 
-A simple starter template for a **Vue3** + **Electron** TypeScript based application, including **ViteJS** and **Electron Builder**.
+基于 **Electron** + **Vue3** 开发的桌面应用，用于自动下载QQ邮箱中所有未读邮件的附件。
+
 </div>
 
-## About
+## ✨ 功能特点
 
-This template utilizes [ViteJS](https://vitejs.dev) for building and serving your (Vue powered) front-end process, it provides Hot Reloads (HMR) to make development fast and easy ⚡ 
+- 🔐 **安全连接** - 使用IMAP协议安全连接QQ邮箱
+- 📮 **未读邮件** - 自动检测所有未读邮件
+- 📎 **智能识别** - 自动判断邮件是否包含附件
+- ⬇️ **批量下载** - 一键下载所有附件到本地
+- ✅ **自动标记** - 下载完成后自动标记邮件为已读
+- 💾 **本地保存** - 记住邮箱账号和授权码
+- 📊 **实时进度** - 显示下载进度和状态
 
-Building the Electron (main) process is done with [Electron Builder](https://www.electron.build/), which makes your application easily distributable and supports cross-platform compilation 😎
+## 🚀 技术栈
 
-## Getting started
+- **Electron** - 跨平台桌面应用框架
+- **Vue 3** - 渐进式JavaScript框架
+- **ViteJS** - 下一代前端构建工具
+- **imap** - IMAP协议客户端
+- **mailparser** - 邮件解析库
+- **Electron Builder** - 应用打包工具
 
-Click the green **Use this template** button on top of the repository, and clone your own newly created repository.
+## 📦 安装和使用
 
-**Or..**
+### 1️⃣ 克隆项目
 
-Clone this repository: `git clone git@github.com:Deluze/electron-vue-template.git`
+```bash
+git clone https://github.com/zxx960/download-email-cv.git
+cd download-email-cv
+```
 
-
-### Install dependencies ⏬
+### 2️⃣ 安装依赖
 
 ```bash
 npm install
 ```
 
-### Start developing ⚒️
+### 3️⃣ 获取QQ邮箱授权码
+
+1. 登录 [QQ邮箱网页版](https://mail.qq.com)
+2. 点击顶部 **"设置"** → **"账户"**
+3. 找到 **"POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV服务"**
+4. 开启 **"IMAP/SMTP服务"**
+5. 按照提示发送短信或扫码验证
+6. 生成授权码（16位字符串），请妥善保存
+
+> ⚠️ **注意**：授权码不是QQ密码！
+
+### 4️⃣ 启动应用
+
+#### 开发模式
 
 ```bash
 npm run dev
 ```
 
-## Additional Commands
+#### 打包应用
 
 ```bash
-npm run dev # starts application with hot reload
-npm run build # builds application, distributable files can be found in "dist" folder
-
-# OR
-
-npm run build:win # uses windows as build target
-npm run build:mac # uses mac as build target
-npm run build:linux # uses linux as build target
+npm run build        # 自动识别当前系统
+npm run build:win    # 打包Windows版本
+npm run build:mac    # 打包macOS版本
+npm run build:linux  # 打包Linux版本
 ```
 
-Optional configuration options can be found in the [Electron Builder CLI docs](https://www.electron.build/cli.html).
-## Project Structure
+打包后的应用在 `dist` 目录中。
+
+## 📖 使用说明
+
+1. 启动应用后，输入你的QQ邮箱地址（如：123456@qq.com）
+2. 输入刚才获取的授权码
+3. 点击 **"开始下载附件"** 按钮
+4. 等待下载完成，附件将保存在 `下载文件夹/EmailAttachments/`
+5. 下载完成的邮件会自动标记为已读
+
+## 📂 附件保存位置
+
+- **Windows**: `C:\Users\你的用户名\Downloads\EmailAttachments\`
+- **macOS**: `~/Downloads/EmailAttachments/`
+- **Linux**: `~/Downloads/EmailAttachments/`
+
+## 📁 项目结构
 
 ```bash
-- scripts/ # all the scripts used to build or serve your application, change as you like.
-- src/
-  - main/ # Main thread (Electron application source)
-  - renderer/ # Renderer thread (VueJS application source)
+download-email-cv/
+├── src/
+│   ├── main/                    # 主进程
+│   │   ├── main.js             # 主进程入口
+│   │   ├── preload.js          # 预加载脚本
+│   │   └── emailHandler.js     # 邮件处理核心模块
+│   └── renderer/                # 渲染进程
+│       ├── App.vue             # 主应用组件
+│       ├── main.js             # 渲染进程入口
+│       └── style.css           # 全局样式
+├── scripts/                     # 构建脚本
+├── package.json                 # 项目配置
+└── README.md                    # 说明文档
 ```
 
-## Using static files
+## ⚙️ 核心模块说明
 
-If you have any files that you want to copy over to the app directory after installation, you will need to add those files in your `src/main/static` directory.
+### emailHandler.js
+处理邮箱连接、邮件检索和附件下载的核心模块：
+- 连接QQ邮箱IMAP服务
+- 搜索未读邮件
+- 解析邮件内容
+- 下载附件到本地
+- 标记邮件为已读
 
-Files in said directory are only accessible to the `main` process, similar to `src/renderer/assets` only being accessible to the `renderer` process. Besides that, the concept is the same as to what you're used to in your other front-end projects.
+### App.vue
+用户界面组件：
+- 邮箱账号和授权码输入
+- 下载进度实时显示
+- 结果统计展示
+- localStorage存储账号信息
 
-#### Referencing static files from your main process
+## ❓ 常见问题
 
-```ts
-/* Assumes src/main/static/myFile.txt exists */
+### Q: 连接失败怎么办？
+**A:** 
+- 检查邮箱地址是否正确
+- 检查授权码是否正确（不是QQ密码）
+- 确保已开启IMAP服务
+- 检查网络连接
 
-import {app} from 'electron';
-import {join} from 'path';
-import {readFileSync} from 'fs';
+### Q: 为什么有些邮件没有下载附件？
+**A:** 应用只下载包含附件的邮件，没有附件的邮件会跳过
 
-const path = join(app.getAppPath(), 'static', 'myFile.txt');
-const buffer = readFileSync(path);
+### Q: 已下载的邮件会重复下载吗？
+**A:** 不会。下载完成后邮件会自动标记为已读，下次不会再下载
+
+### Q: 如何清除保存的账号信息？
+**A:** 手动清空输入框，或在浏览器控制台执行：
+```javascript
+localStorage.removeItem('qq_email');
+localStorage.removeItem('qq_auth_code');
 ```
+
+## 🔒 安全说明
+
+- 授权码保存在本地 localStorage 中
+- 不会上传到任何服务器
+- 建议定期更换授权码
+- 不要分享授权码给他人
+
+## 📄 开源协议
+
+MIT License
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 👨‍💻 作者
+
+基于 [Electron Vue Template](https://github.com/Deluze/electron-vue-template) 开发
