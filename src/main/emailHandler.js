@@ -79,9 +79,16 @@ class EmailHandler {
           let processedCount = 0;
           let attachmentsCount = 0;
 
-          const fetch = this.imap.fetch(results, { bodies: '' });
+          const fetch = this.imap.fetch(results, { bodies: '', markSeen: false });
 
           fetch.on('message', (msg, seqno) => {
+            let hasAttachments = false;
+            let messageUid = null;
+
+            msg.once('attributes', (attrs) => {
+              messageUid = attrs.uid;
+            });
+
             msg.on('body', (stream, info) => {
               simpleParser(stream, async (err, parsed) => {
                 if (err) {
@@ -93,6 +100,7 @@ class EmailHandler {
                 
                 // 检查是否有附件
                 if (parsed.attachments && parsed.attachments.length > 0) {
+                  hasAttachments = true;
                   console.log(`  找到 ${parsed.attachments.length} 个附件`);
                   
                   // 确保下载目录存在
@@ -128,6 +136,17 @@ class EmailHandler {
                     } catch (writeErr) {
                       console.error(`保存附件失败: ${filename}`, writeErr);
                     }
+                  }
+
+                  // 下载完附件后，标记邮件为已读
+                  if (messageUid) {
+                    this.imap.addFlags(messageUid, ['\\Seen'], (err) => {
+                      if (err) {
+                        console.error(`标记邮件 #${seqno} 为已读失败:`, err);
+                      } else {
+                        console.log(`  ✓ 邮件 #${seqno} 已标记为已读`);
+                      }
+                    });
                   }
                 } else {
                   console.log('  没有附件');
