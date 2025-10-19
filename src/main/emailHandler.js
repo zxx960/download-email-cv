@@ -7,7 +7,28 @@ const { app } = require('electron');
 class EmailHandler {
   constructor() {
     this.imap = null;
-    this.downloadPath = path.join(app.getPath('downloads'), 'EmailAttachments');
+    this.downloadPath = null; // 每次下载时动态创建
+  }
+
+  // 创建带时间戳的下载文件夹
+  createDownloadFolder() {
+    const now = new Date();
+    const timestamp = now.getFullYear() +
+      String(now.getMonth() + 1).padStart(2, '0') +
+      String(now.getDate()).padStart(2, '0') + '_' +
+      String(now.getHours()).padStart(2, '0') +
+      String(now.getMinutes()).padStart(2, '0') +
+      String(now.getSeconds()).padStart(2, '0');
+    
+    const folderName = `EmailAttachments_${timestamp}`;
+    this.downloadPath = path.join(app.getPath('downloads'), folderName);
+    
+    // 创建文件夹
+    if (!fs.existsSync(this.downloadPath)) {
+      fs.mkdirSync(this.downloadPath, { recursive: true });
+    }
+    
+    return this.downloadPath;
   }
 
   // 连接到QQ邮箱
@@ -73,6 +94,11 @@ class EmailHandler {
           }
 
           console.log(`找到 ${results.length} 封未读邮件`);
+          
+          // 创建带时间戳的下载文件夹
+          const downloadPath = this.createDownloadFolder();
+          console.log(`下载文件夹: ${downloadPath}`);
+          
           progressCallback({ status: 'searching', total: results.length });
 
           const downloadedFiles = [];
@@ -102,11 +128,6 @@ class EmailHandler {
                 if (parsed.attachments && parsed.attachments.length > 0) {
                   hasAttachments = true;
                   console.log(`  找到 ${parsed.attachments.length} 个附件`);
-                  
-                  // 确保下载目录存在
-                  if (!fs.existsSync(this.downloadPath)) {
-                    fs.mkdirSync(this.downloadPath, { recursive: true });
-                  }
 
                   // 下载每个附件
                   for (const attachment of parsed.attachments) {

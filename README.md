@@ -75,14 +75,19 @@ npm run build:linux  # 打包Linux版本
 1. 启动应用后，输入你的QQ邮箱地址（如：123456@qq.com）
 2. 输入刚才获取的授权码
 3. 点击 **"开始下载附件"** 按钮
-4. 等待下载完成，附件将保存在 `下载文件夹/EmailAttachments/`
+4. 等待下载完成，附件将保存在带时间戳的文件夹中
 5. 下载完成的邮件会自动标记为已读
 
 ## 📂 附件保存位置
 
-- **Windows**: `C:\Users\你的用户名\Downloads\EmailAttachments\`
-- **macOS**: `~/Downloads/EmailAttachments/`
-- **Linux**: `~/Downloads/EmailAttachments/`
+每次下载会自动创建一个带时间戳的新文件夹，格式为：`EmailAttachments_YYYYMMDD_HHMMSS`
+
+例如：
+- **Windows**: `C:\Users\你的用户名\Downloads\EmailAttachments_20250120_162035\`
+- **macOS**: `~/Downloads/EmailAttachments_20250120_162035/`
+- **Linux**: `~/Downloads/EmailAttachments_20250120_162035/`
+
+> 💡 **提示**：每次下载都会创建新文件夹，方便管理不同批次的附件
 
 ## 📁 项目结构
 
