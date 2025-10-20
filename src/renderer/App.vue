@@ -184,6 +184,14 @@ const openDownloadFolder = async () => {
         </button>
       </div>
     </div>
+
+    <footer class="footer">
+      <div class="author-info">
+        <span class="author-text">作者：西牧</span>
+        <span class="divider">|</span>
+        <span class="wechat-text">微信：zxx960</span>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -398,5 +406,36 @@ const openDownloadFolder = async () => {
 
 .open-folder-btn:hover {
   background: #27ae60;
+}
+
+.footer {
+  margin-top: 40px;
+  padding: 20px 0;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
+}
+
+.author-info {
+  color: #6c757d;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.author-text,
+.wechat-text {
+  transition: color 0.3s ease;
+}
+
+.author-text:hover,
+.wechat-text:hover {
+  color: #3498db;
+}
+
+.divider {
+  color: #dee2e6;
+  font-weight: 300;
 }
 </style>
