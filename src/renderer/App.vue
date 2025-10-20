@@ -215,7 +215,7 @@ const openDownloadFolder = async () => {
 
 .subtitle {
   color: #7f8c8d;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .form-container {
