@@ -6,7 +6,7 @@ let emailHandler = null;
 
 function createWindow () {
   const mainWindow = new BrowserWindow({
-    width: 1000,
+    width: 900,
     height: 800,
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
