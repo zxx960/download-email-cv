@@ -14,8 +14,9 @@ let unsubscribeProgress = null;
 
 onMounted(() => {
   // 从localStorage读取保存的邮箱和授权码
-  const savedEmail = localStorage.getItem('qq_email');
-  const savedPassword = localStorage.getItem('qq_auth_code');
+  // 兼容旧的 QQ 专用 key
+  const savedEmail = localStorage.getItem('email_address') || localStorage.getItem('qq_email');
+  const savedPassword = localStorage.getItem('email_auth_code') || localStorage.getItem('qq_auth_code');
   if (savedEmail) {
     email.value = savedEmail;
   }
@@ -50,7 +51,7 @@ const connectAndDownload = async () => {
   }
 
   isConnecting.value = true;
-  status.value = '正在连接QQ邮箱...';
+  status.value = '正在连接邮箱...';
   progress.value = '';
   result.value = null;
 
@@ -65,8 +66,8 @@ const connectAndDownload = async () => {
     }
 
     // 连接成功后保存邮箱和授权码到localStorage
-    localStorage.setItem('qq_email', email.value);
-    localStorage.setItem('qq_auth_code', password.value);
+    localStorage.setItem('email_address', email.value);
+    localStorage.setItem('email_auth_code', password.value);
 
     status.value = '连接成功，开始下载附件...';
     isDownloading.value = true;
@@ -106,18 +107,18 @@ const openDownloadFolder = async () => {
 <template>
   <div class="container">
     <div class="header">
-      <h1>📧 QQ邮箱附件下载器</h1>
+      <h1>📧 邮箱附件下载器</h1>
       <p class="subtitle">下载所有未读邮件的附件</p>
     </div>
 
     <div class="form-container">
       <div class="form-group">
-        <label for="email">QQ邮箱地址</label>
+        <label for="email">邮箱地址</label>
         <input
           id="email"
           v-model="email"
           type="email"
-          placeholder="example@qq.com"
+          placeholder="例如：example@qq.com 或 example@163.com"
           :disabled="isConnecting || isDownloading"
         />
       </div>
@@ -125,7 +126,7 @@ const openDownloadFolder = async () => {
       <div class="form-group">
         <label for="password">
           授权码
-          <span class="help-text">（非QQ密码，需在QQ邮箱设置中获取）</span>
+          <span class="help-text">（不是登录密码，需要在邮箱设置中开启 IMAP 并获取授权码/客户端专用密码）</span>
         </label>
         <div class="password-input">
           <input

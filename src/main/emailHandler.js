@@ -34,10 +34,17 @@ class EmailHandler {
   // 连接到QQ邮箱
   connect(email, password) {
     return new Promise((resolve, reject) => {
+      const domain = email.split('@')[1] || '';
+      let host = 'imap.qq.com';
+
+      if (domain === '163.com') {
+        host = 'imap.163.com';
+      }
+
       this.imap = new Imap({
         user: email,
         password: password,
-        host: 'imap.qq.com',
+        host: host,
         port: 993,
         tls: true,
         tlsOptions: { rejectUnauthorized: false }
