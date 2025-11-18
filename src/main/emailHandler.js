@@ -41,6 +41,13 @@ class EmailHandler {
         host = 'imap.163.com';
       }
 
+      const idInfo = {
+        name: '邮箱简历提取系统',
+        version: '1.0.0',
+        vendor: 'ResumeExtractor',
+        'support-email': 'support@resumeextractor.com'
+      };
+
       this.imap = new Imap({
         user: email,
         password: password,
@@ -51,6 +58,20 @@ class EmailHandler {
       });
 
       this.imap.once('ready', () => {
+        try {
+          if (typeof this.imap.id === 'function') {
+            this.imap.id(idInfo, (err, res) => {
+              if (err) {
+                console.warn('发送 IMAP ID 失败:', err.message || err);
+              } else {
+                console.log('IMAP ID 响应:', res);
+              }
+            });
+          }
+        } catch (e) {
+          console.warn('IMAP ID 过程异常:', e.message || e);
+        }
+
         console.log('IMAP连接成功');
         resolve({ success: true, message: '连接成功' });
       });
