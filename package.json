@@ -1,7 +1,7 @@
 {
-  "name": "qq-email-attachment-downloader",
+  "name": "email-attachment-downloader",
   "version": "1.0.0",
-  "description": "QQ邮箱附件下载器 - 基于Electron + Vue3开发的桌面应用",
+  "description": "邮箱附件下载器 - 基于Electron + Vue3开发的桌面应用",
   "main": "main/main.js",
   "scripts": {
     "dev": "node scripts/dev-server.js",

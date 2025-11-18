@@ -1,5 +1,6 @@
 {
     "appId": "com.electron.app",
+    "productName": "邮箱附件下载",
     "directories": {
         "output": "dist"
     },
@@ -8,10 +9,11 @@
         "oneClick": false,
         "perMachine": false,
         "allowToChangeInstallationDirectory": true,
-        "shortcutName": "Electron App"
+        "shortcutName": "邮箱附件下载"
     },
     "win": {
-        "target": "nsis"
+        "target": "nsis",
+        "artifactName": "邮箱附件下载.exe"
     },
     "linux":  {
         "target": ["snap"]
