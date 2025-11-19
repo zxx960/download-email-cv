@@ -542,9 +542,8 @@ const removeCurrentAccount = async () => {
 }
 
 .status-message {
-  padding: 15px;
+  padding: 15px 30px;
   background: #d5f4e6;
-  border-left: 4px solid #27ae60;
   border-radius: 4px;
   color: #27ae60;
   margin-bottom: 10px;
@@ -566,7 +565,7 @@ const removeCurrentAccount = async () => {
 
 .result-container {
   background: #f8f9fa;
-  padding: 20px;
+  padding: 20px 30px;
   border-radius: 12px;
   margin-bottom: 20px;
 }
