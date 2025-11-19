@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 
+const accounts = ref([]);
+const selectedAccountId = ref('');
+
 const email = ref('');
 const password = ref('');
 const isConnecting = ref(false);
@@ -10,18 +13,24 @@ const progress = ref('');
 const result = ref(null);
 const passwordType = ref('password');
 
+const showAccountModal = ref(false);
+const newAccountEmail = ref('');
+const newAccountPassword = ref('');
+
 let unsubscribeProgress = null;
 
-onMounted(() => {
-  // 从localStorage读取保存的邮箱和授权码
-  // 兼容旧的 QQ 专用 key
-  const savedEmail = localStorage.getItem('email_address') || localStorage.getItem('qq_email');
-  const savedPassword = localStorage.getItem('email_auth_code') || localStorage.getItem('qq_auth_code');
-  if (savedEmail) {
-    email.value = savedEmail;
-  }
-  if (savedPassword) {
-    password.value = savedPassword;
+onMounted(async () => {
+  // 加载账号列表
+  try {
+    const res = await window.electronAPI.account.list();
+    accounts.value = Array.isArray(res) ? res : [];
+    if (accounts.value.length > 0) {
+      selectedAccountId.value = accounts.value[0].id;
+      email.value = accounts.value[0].email;
+      password.value = accounts.value[0].password;
+    }
+  } catch (e) {
+    console.error('加载账号列表失败:', e);
   }
 
   // 监听下载进度
@@ -45,8 +54,17 @@ const togglePasswordVisibility = () => {
 };
 
 const connectAndDownload = async () => {
+  const account = accounts.value.find(a => a.id === selectedAccountId.value);
+  if (!account) {
+    status.value = '请先选择一个账号，或新增账号';
+    return;
+  }
+
+  email.value = account.email;
+  password.value = account.password;
+
   if (!email.value || !password.value) {
-    status.value = '请输入邮箱地址和授权码';
+    status.value = '账号信息不完整，请重新编辑账号';
     return;
   }
 
@@ -64,10 +82,6 @@ const connectAndDownload = async () => {
       isConnecting.value = false;
       return;
     }
-
-    // 连接成功后保存邮箱和授权码到localStorage
-    localStorage.setItem('email_address', email.value);
-    localStorage.setItem('email_auth_code', password.value);
 
     status.value = '连接成功，开始下载附件...';
     isDownloading.value = true;
@@ -102,6 +116,84 @@ const openDownloadFolder = async () => {
     }
   }
 };
+
+const openAccountModal = () => {
+  newAccountEmail.value = '';
+  newAccountPassword.value = '';
+  showAccountModal.value = true;
+};
+
+const cancelAccountModal = () => {
+  showAccountModal.value = false;
+};
+
+const saveAccount = async () => {
+  if (!newAccountEmail.value || !newAccountPassword.value) {
+    status.value = '请填写完整的账号信息';
+    return;
+  }
+
+  try {
+    const res = await window.electronAPI.account.add({
+      label: newAccountEmail.value,
+      email: newAccountEmail.value,
+      password: newAccountPassword.value,
+    });
+
+    if (!res || !res.success) {
+      status.value = `保存账号失败: ${res && res.message ? res.message : '未知错误'}`;
+      return;
+    }
+
+    const created = res.data;
+    accounts.value.push(created);
+    selectedAccountId.value = created.id;
+    email.value = created.email;
+    password.value = created.password;
+
+    showAccountModal.value = false;
+    newAccountEmail.value = '';
+    newAccountPassword.value = '';
+  } catch (e) {
+    status.value = `保存账号异常: ${e.message}`;
+  }
+};
+
+const removeCurrentAccount = async () => {
+  if (!selectedAccountId.value) {
+    status.value = '当前没有可删除的账号';
+    return;
+  }
+
+  if (!confirm('确定要删除当前选中的账号吗？')) {
+    return;
+  }
+
+  try {
+    const res = await window.electronAPI.account.remove(selectedAccountId.value);
+    if (!res || !res.success) {
+      status.value = `删除账号失败: ${res && res.message ? res.message : '未知错误'}`;
+      return;
+    }
+
+    const idx = accounts.value.findIndex(a => a.id === selectedAccountId.value);
+    if (idx !== -1) {
+      accounts.value.splice(idx, 1);
+    }
+
+    if (accounts.value.length > 0) {
+      selectedAccountId.value = accounts.value[0].id;
+      email.value = accounts.value[0].email;
+      password.value = accounts.value[0].password;
+    } else {
+      selectedAccountId.value = '';
+      email.value = '';
+      password.value = '';
+    }
+  } catch (e) {
+    status.value = `删除账号异常: ${e.message}`;
+  }
+};
 </script>
 
 <template>
@@ -113,42 +205,51 @@ const openDownloadFolder = async () => {
 
     <div class="form-container">
       <div class="form-group">
-        <label for="email">邮箱地址</label>
-        <input
-          id="email"
-          v-model="email"
-          type="email"
-          placeholder="例如：example@qq.com 或 example@163.com"
-          :disabled="isConnecting || isDownloading"
-        />
+        <label for="account">选择账号</label>
+        <select
+          id="account"
+          v-model="selectedAccountId"
+          :disabled="isConnecting || isDownloading || accounts.length === 0"
+        >
+          <option
+            v-if="accounts.length === 0"
+            disabled
+            value=""
+          >
+            暂无账号，请先新增
+          </option>
+          <option
+            v-for="acc in accounts"
+            :key="acc.id"
+            :value="acc.id"
+          >
+            {{ acc.email }}
+          </option>
+        </select>
       </div>
 
-      <div class="form-group">
-        <label for="password">
-          授权码
-          <span class="help-text">（不是登录密码，需要在邮箱设置中开启 IMAP 并获取授权码/客户端专用密码）</span>
-        </label>
-        <div class="password-input">
-          <input
-            id="password"
-            v-model="password"
-            :type="passwordType"
-            placeholder="输入授权码"
-            :disabled="isConnecting || isDownloading"
-          />
-          <button 
-            type="button" 
-            class="toggle-password" 
-            @click="togglePasswordVisibility"
-            :disabled="isConnecting || isDownloading"
-          >
-            {{ passwordType === 'password' ? '👁️' : '🙈' }}
-          </button>
-        </div>
+      <div class="form-group account-actions">
+        <button
+          type="button"
+          class="secondary-btn"
+          @click="openAccountModal"
+          :disabled="isConnecting || isDownloading"
+        >
+          新增账号
+        </button>
+        <button
+          type="button"
+          class="secondary-btn danger"
+          @click="removeCurrentAccount"
+          :disabled="isConnecting || isDownloading || !selectedAccountId"
+        >
+          删除当前账号
+        </button>
       </div>
 
       <button
         class="download-btn"
+        type="button"
         @click="connectAndDownload"
         :disabled="isConnecting || isDownloading"
       >
@@ -156,16 +257,76 @@ const openDownloadFolder = async () => {
       </button>
     </div>
 
-    <div v-if="status" class="status-container">
-      <div class="status-message" :class="{ error: status.includes('失败') || status.includes('错误') }">
+    <div
+      v-if="status"
+      class="status-container"
+    >
+      <div
+        class="status-message"
+        :class="{ error: status.includes('失败') || status.includes('错误') }"
+      >
         {{ status }}
       </div>
-      <div v-if="progress" class="progress-message">
+      <div
+        v-if="progress"
+        class="progress-message"
+      >
         {{ progress }}
       </div>
     </div>
 
-    <div v-if="result && result.success" class="result-container">
+    <div
+      v-if="showAccountModal"
+      class="modal-backdrop"
+    >
+      <div class="modal">
+        <h3>新增账号</h3>
+        <div class="form-group">
+          <label for="accountEmail">邮箱地址</label>
+          <input
+            id="accountEmail"
+            v-model="newAccountEmail"
+            type="email"
+            placeholder="例如：example@qq.com 或 example@163.com"
+          />
+        </div>
+        <div class="form-group">
+          <label for="accountPassword">
+            授权码
+            <span class="help-text">（不是登录密码，需要在邮箱设置中开启 IMAP 并获取授权码/客户端专用密码）</span>
+          </label>
+          <div class="password-input">
+            <input
+              id="accountPassword"
+              v-model="newAccountPassword"
+              type="password"
+              placeholder="输入授权码"
+            />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="secondary-btn"
+            @click="cancelAccountModal"
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            class="download-btn"
+            @click="saveAccount"
+          >
+            保存
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="result && result.success"
+      class="result-container"
+    >
       <h3>下载详情</h3>
       <div class="result-stats">
         <div class="stat-item">
@@ -177,10 +338,17 @@ const openDownloadFolder = async () => {
           <span class="stat-value">{{ result.attachmentsCount }}</span>
         </div>
       </div>
-      <div v-if="result.attachmentsCount > 0" class="download-path">
+      <div
+        v-if="result.attachmentsCount > 0"
+        class="download-path"
+      >
         <p><strong>保存位置:</strong></p>
         <code>{{ result.downloadPath }}</code>
-        <button class="open-folder-btn" @click="openDownloadFolder">
+        <button
+          type="button"
+          class="open-folder-btn"
+          @click="openDownloadFolder"
+        >
           📁 查看位置
         </button>
       </div>
@@ -289,6 +457,63 @@ const openDownloadFolder = async () => {
 .form-group input:disabled {
   background: #ecf0f1;
   cursor: not-allowed;
+}
+
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.form-group select:disabled {
+  background: #ecf0f1;
+  cursor: not-allowed;
+}
+
+.account-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.secondary-btn {
+  padding: 10px 16px;
+  background: #ffffff;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s, border-color 0.3s;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.secondary-btn:hover:not(:disabled) {
+  background: #f1f3f5;
+  border-color: #adb5bd;
+}
+
+.secondary-btn:disabled {
+  background: #e9ecef;
+  cursor: not-allowed;
+}
+
+.secondary-btn.danger {
+  color: #e03131;
+  border-color: #ffa8a8;
+}
+
+.secondary-btn.danger:hover:not(:disabled) {
+  background: #ffe3e3;
+  border-color: #ff8787;
 }
 
 .download-btn {
@@ -439,4 +664,45 @@ const openDownloadFolder = async () => {
   color: #dee2e6;
   font-weight: 300;
 }
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  width: 420px;
+  max-width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.modal h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #2c3e50;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.modal-actions .secondary-btn,
+.modal-actions .download-btn {
+  flex: 1;
+}
+
 </style>

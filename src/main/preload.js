@@ -16,6 +16,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
   },
   
+  // 账号相关API
+  account: {
+    list: () => ipcRenderer.invoke('account:list'),
+    add: (account) => ipcRenderer.invoke('account:add', account),
+    remove: (id) => ipcRenderer.invoke('account:remove', id),
+  },
+  
   // 系统相关API
   openPath: (path) => ipcRenderer.invoke('system:openPath', path)
 })

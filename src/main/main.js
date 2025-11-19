@@ -1,6 +1,7 @@
 const {app, BrowserWindow, ipcMain, session, shell} = require('electron');
 const {join} = require('path');
 const EmailHandler = require('./emailHandler');
+const accountStore = require('./accountStore');
 
 let emailHandler = null;
 
@@ -97,6 +98,31 @@ ipcMain.handle('email:disconnect', async (event) => {
     emailHandler.disconnect();
     emailHandler = null;
   }
+  return { success: true };
+});
+
+// 账号管理相关 IPC handlers
+ipcMain.handle('account:list', async () => {
+  const accounts = accountStore.getAccounts();
+  return accounts;
+});
+
+ipcMain.handle('account:add', async (event, account) => {
+  const { label, email, password } = account || {};
+  if (!label || !email || !password) {
+    return { success: false, message: '账号信息不完整' };
+  }
+
+  const created = accountStore.addAccount({ label, email, password });
+  return { success: true, data: created };
+});
+
+ipcMain.handle('account:remove', async (event, id) => {
+  if (!id) {
+    return { success: false, message: '缺少账号ID' };
+  }
+
+  accountStore.removeAccount(id);
   return { success: true };
 });
 
