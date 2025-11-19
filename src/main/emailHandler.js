@@ -103,8 +103,8 @@ class EmailHandler {
           return;
         }
 
-        // 搜索未读邮件
-        this.imap.search(['UNSEEN'], (err, results) => {
+        // 搜索所有邮件
+        this.imap.search(['ALL'], (err, results) => {
           if (err) {
             reject({ success: false, message: `搜索邮件失败: ${err.message}` });
             return;
@@ -151,15 +151,22 @@ class EmailHandler {
                 }
 
                 console.log(`邮件 #${seqno}: ${parsed.subject}`);
-                
-                // 检查是否有附件
+                console.log('  attachments length:', parsed.attachments ? parsed.attachments.length : 0);
                 if (parsed.attachments && parsed.attachments.length > 0) {
+                  parsed.attachments.forEach((att, idx) => {
+                    console.log(`  附件[${idx}]: filename=${att.filename}, contentType=${att.contentType}, disposition=${att.contentDisposition}`);
+                  });
+
                   hasAttachments = true;
                   console.log(`  找到 ${parsed.attachments.length} 个附件`);
 
                   // 下载每个附件
                   for (const attachment of parsed.attachments) {
-                    const filename = attachment.filename || `attachment_${Date.now()}`;
+                    let filename = attachment.filename || `attachment_${Date.now()}`;
+
+                    // 清洗文件名，避免 / \\ 等在 Windows 下被当作路径分隔符
+                    filename = filename.replace(/[\\/:*?"<>|]/g, '_');
+
                     const filepath = path.join(this.downloadPath, filename);
                     
                     try {
