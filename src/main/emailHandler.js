@@ -103,8 +103,8 @@ class EmailHandler {
           return;
         }
 
-        // 搜索所有邮件
-        this.imap.search(['ALL'], (err, results) => {
+        // 搜索未读邮件
+        this.imap.search(['UNSEEN'], (err, results) => {
           if (err) {
             reject({ success: false, message: `搜索邮件失败: ${err.message}` });
             return;
